@@ -3,6 +3,42 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export const ensureUserInDatabase = async (authUser) => {
+  try {
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+
+    if (!existingUser) {
+      const name = authUser.user_metadata?.name || authUser.email.split('@')[0];
+      const role = authUser.user_metadata?.role || 'parent';
+      
+      const { error } = await supabase
+        .from('users')
+        .insert({
+          id: authUser.id,
+          email: authUser.email,
+          name,
+          role,
+          password: ''
+        });
+
+      if (error) throw error;
+      
+      return { id: authUser.id, email: authUser.email, name, role, password: '' };
+    }
+    
+    return existingUser;
+  } catch (error) {
+    console.error('Error ensuring user in database:', error);
+    throw error;
+  }
+};
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables!')
   console.error('Make sure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in Vercel')
