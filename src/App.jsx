@@ -4,7 +4,7 @@ import { storage, db, supabase, ensureUserInDatabase, fileUpload } from './supab
 
 // ==================== QUIZ HELPER FUNCTIONS ====================
 
-// Normalize question (add type if missing for backward compatibility)
+//  Normalize question (add type if missing for backward compatibility)
 const normalizeQuestion = (question) => {
   if (!question.type) {
     // Old format: has opts array = multiple choice
